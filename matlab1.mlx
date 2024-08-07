@@ -1,0 +1,12 @@
+clear
+Img1 = imread("Add1.jpg");
+Img2 = imread("Add2.jpg");
+Img3 = (Img1 + Img2);
+Img4 = +100;
+Img5 = -100;
+
+subplot(2,3,1); imshow(Img1); title("Imagem1");
+subplot(2,3,2); imshow(Img2); title("Imagem2");
+subplot(2,3,3); imshow(Img3); title("Imagem3");
+subplot(2,3,4); imshow(Img4); title("Imagem4");
+subplot(2,3,5); imshow(Img5); title("Imagem5");

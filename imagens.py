@@ -13,7 +13,7 @@ class ImageProcessingApp(QMainWindow):
       self.initUI()
 
   def initUI(self):
-      self.setWindowTitle('Operações Aritméticas e Lógicas em Imagens')
+      self.setWindowTitle('Trabalho de Procesamento de Imagens - Semestre 2024-2')
       self.setGeometry(0, 0, 1280, 720)
 
       self.setStyleSheet("""
