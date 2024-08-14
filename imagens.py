@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog
-from PIL import Image, ImageTk, ImageOps
+from PIL import Image, ImageTk
 import numpy as np
 
 class ImageProcessingApp(tk.Tk):
@@ -156,9 +156,9 @@ class ImageProcessingApp(tk.Tk):
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
-              r = min(255, image_a.getpixel((i, j))[0] + image_b.getpixel((i, j))[0] + addition_value) if addition_value > 0 else max(0, image_a.getpixel((i, j))[0] + image_b.getpixel((i, j))[0] - addition_value)
-              g = min(255, image_a.getpixel((i, j))[1] + image_b.getpixel((i, j))[1] + addition_value) if addition_value > 0 else max(0, image_a.getpixel((i, j))[1] + image_b.getpixel((i, j))[1] - addition_value)
-              b = min(255, image_a.getpixel((i, j))[2] + image_b.getpixel((i, j))[2] + addition_value) if addition_value > 0 else max(0, image_a.getpixel((i, j))[2] + image_b.getpixel((i, j))[2] - addition_value)
+              r = min(255, image_a.getpixel((i, j))[0] + image_b.getpixel((i, j))[0] + addition_value)
+              g = min(255, image_a.getpixel((i, j))[1] + image_b.getpixel((i, j))[1] + addition_value)
+              b = min(255, image_a.getpixel((i, j))[2] + image_b.getpixel((i, j))[2] + addition_value)
               result_image.putpixel((i, j), (r, g, b))
 
       # Convert result to image
@@ -167,38 +167,35 @@ class ImageProcessingApp(tk.Tk):
       self.result_image_label.config(image=self.result_image)
 
   def subtract_images_with_value(self):
-      if self.image_a and self.image_b:
-          # Ask for the subtraction value
-          value = simpledialog.askinteger("Valor de Subtração", "Insira o valor a ser subtraído:", minvalue=0, maxvalue=255)
-          if value is None:
-              return
-
-          # Open images
-          image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGBA')
-          image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGBA')
-
-          # Resize images to the same size
-          width, height = image_a.size
-          image_b = image_b.resize((width, height), Image.LANCZOS)
-
-          # Convert images to arrays
-          image_a_array = np.array(image_a)
-          image_b_array = np.array(image_b)
-
-          # Subtract images with the given value
-          result_array = np.abs(image_a_array - image_b_array - value)
-
-          # Clip values to ensure they're in the valid range (0-255)
-          result_array = np.clip(result_array, 0, 255).astype(np.uint8)
-
-          # Convert result to image
-          self.result_image_pil = Image.fromarray(result_array, 'RGBA')
-          result_image = self.result_image_pil.copy()
-          result_image.thumbnail((200, 200))
-          self.result_image = ImageTk.PhotoImage(result_image)
-          self.result_image_label.config(image=self.result_image)
-      else:
+      if not self.image_a or not self.image_b:
           messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+          return
+
+      # Ask for the subtraction value
+      subtraction_value = simpledialog.askinteger(
+          "Valor de Subtração", "Adicione o valor da sobtração (0 a 255), 1 para apenas subtração padrão", minvalue=0, maxvalue=255)
+      if subtraction_value is None:
+          return
+
+      # Open images and resize them to the same size
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+      image_b = image_b.resize((width, height), Image.LANCZOS)
+
+      # Subtract images with the given value
+      result_image = Image.new('RGB', (width, height))
+      for i in range(width):
+          for j in range(height):
+              r = max(0, image_a.getpixel((i, j))[0] - image_b.getpixel((i, j))[0] - subtraction_value)
+              g = max(0, image_a.getpixel((i, j))[1] - image_b.getpixel((i, j))[1] - subtraction_value)
+              b = max(0, image_a.getpixel((i, j))[2] - image_b.getpixel((i, j))[2] - subtraction_value)
+              result_image.putpixel((i, j), (r, g, b))
+
+      # Convert result to image
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
 
   def save_result_image(self):
       if self.result_image_pil:
