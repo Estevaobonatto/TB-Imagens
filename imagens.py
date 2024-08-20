@@ -10,7 +10,6 @@ class ImageProcessingApp(tk.Tk):
       self.geometry('1400x600')
       self.configure(bg='#000000')
 
-      # Configure style
       style = ttk.Style(self)
       style.theme_use('clam')
       style.configure('TButton', background='#3a3a3a', foreground='white', borderwidth=1, focusthickness=3, focuscolor='none')
@@ -26,11 +25,9 @@ class ImageProcessingApp(tk.Tk):
       self.create_widgets()
 
   def create_widgets(self):
-      # Main frame
       main_frame = ttk.Frame(self, padding=5)
       main_frame.pack(fill='both', expand=True)
 
-      # Image A
       left_frame = ttk.Frame(main_frame, padding=5)
       left_frame.pack(side='left', fill='y')
 
@@ -45,7 +42,6 @@ class ImageProcessingApp(tk.Tk):
       ttk.Button(left_frame, text='RGB -> HSI', command=self.convert_rgb_to_hsi).pack(pady=5)
       ttk.Button(left_frame, text='ToDouble', command=self.to_double).pack(pady=5)
 
-      # Operations
       operations_frame = ttk.Frame(main_frame, padding=5)
       operations_frame.pack(side='left', fill='both', expand=True)
 
@@ -142,19 +138,16 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Error", "Load both images before performing the operation.")
           return
 
-      # Ask for the addition value
       addition_value = simpledialog.askinteger(
           "Addition Value", "Adicione o valor do brilho (0 a 255), 1 para apenas adição", minvalue=0, maxvalue=255)
       if addition_value is None:
           return
 
-      # Open images and resize them to the same size
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
       image_b = image_b.resize((width, height), Image.LANCZOS)
 
-      # Add images with the given value
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
@@ -163,7 +156,6 @@ class ImageProcessingApp(tk.Tk):
               b = min(255, image_a.getpixel((i, j))[2] + image_b.getpixel((i, j))[2] + addition_value)
               result_image.putpixel((i, j), (r, g, b))
 
-      # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -174,19 +166,16 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
           return
 
-      # Ask for the subtraction value
       subtraction_value = simpledialog.askinteger(
           "Valor de Subtração", "Adicione o valor da subtração (0 a 255), 1 para apenas subtração padrão", minvalue=0, maxvalue=255)
       if subtraction_value is None:
           return
 
-      # Open images and resize them to the same size
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
       image_b = image_b.resize((width, height), Image.LANCZOS)
 
-      # Subtract images with the given value
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
@@ -195,7 +184,6 @@ class ImageProcessingApp(tk.Tk):
               b = max(0, image_a.getpixel((i, j))[2] - image_b.getpixel((i, j))[2] - subtraction_value)
               result_image.putpixel((i, j), (r, g, b))
 
-      # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -232,7 +220,7 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
           return
 
-      # Open images and resize them to the same size
+
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
@@ -248,7 +236,6 @@ class ImageProcessingApp(tk.Tk):
               b = min(255, int(image_a.getpixel((i, j))[2] / (image_b.getpixel((i, j))[2] + 1e-6) * 255))
               result_image.putpixel((i, j), (r, g, b))
 
-      # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -259,13 +246,11 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
           return
 
-      # Open images and resize them to the same size
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
       image_b = image_b.resize((width, height), Image.LANCZOS)
 
-      # Average images
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
@@ -274,7 +259,6 @@ class ImageProcessingApp(tk.Tk):
               b = (image_a.getpixel((i, j))[2] + image_b.getpixel((i, j))[2]) // 2
               result_image.putpixel((i, j), (r, g, b))
 
-      # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -295,27 +279,25 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a conversão.")
           return
 
-      # Open image A
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
 
-      # Convert RGB to YIQ and back to RGB for display
       result_image = Image.new('RGB', (width, height))
       for x in range(width):
           for y in range(height):
               r, g, b = image_a.getpixel((x, y))
-              # Convert RGB to YIQ
+
               y_val = 0.299 * r + 0.587 * g + 0.114 * b
               i_val = 0.596 * r - 0.274 * g - 0.322 * b
               q_val = 0.211 * r - 0.523 * g + 0.312 * b
-              # Convert YIQ back to RGB for display
+
               r = y_val + 0.956 * i_val + 0.621 * q_val
               g = y_val - 0.272 * i_val - 0.647 * q_val
               b = y_val - 1.106 * i_val + 1.703 * q_val
               r, g, b = [int(max(0, min(255, x))) for x in (r, g, b)]
               result_image.putpixel((x, y), (r, g, b))
 
-      # Convert result to image
+
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -326,11 +308,9 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a conversão.")
           return
 
-      # Open image A
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
 
-      # Convert RGB to HSI
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
@@ -350,8 +330,7 @@ class ImageProcessingApp(tk.Tk):
                   else:
                       hue = 2 * math.pi - theta
 
-              # Convert HSI back to RGB for display
-              h = hue * 180 / math.pi  # Convert to degrees
+              h = hue * 180 / math.pi  
               if h < 120:
                   b = intensity * (1 - saturation)
                   r = intensity * (1 + (saturation * math.cos(h)) / math.cos(60 - h))
@@ -369,7 +348,6 @@ class ImageProcessingApp(tk.Tk):
               r, g, b = [int(max(0, min(255, x * 255))) for x in (r, g, b)]
               result_image.putpixel((i, j), (r, g, b))
 
-      # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -380,26 +358,22 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a conversão.")
           return
 
-      # Open image A
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
 
-      # Convert RGB to double (0.0 to 1.0)
       result_image = Image.new('RGB', (width, height))
       for x in range(width):
           for y in range(height):
               r, g, b = image_a.getpixel((x, y))
-              # Normalize to 0.0 - 1.0
               r_double = r / 255.0
               g_double = g / 255.0
               b_double = b / 255.0
-              # Convert back to 0-255 for display purposes
+
               r_display = int(r_double * 255)
               g_display = int(g_double * 255)
               b_display = int(b_double * 255)
               result_image.putpixel((x, y), (r_display, g_display, b_display))
 
-      # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -410,18 +384,15 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
           return
     
-      # Ask for the alpha value
       alpha = simpledialog.askfloat("Valor de Alpha", "Insira o valor de alpha (0.0 a 1.0):", minvalue=0.0, maxvalue=1.0)
       if alpha is None:
           return
     
-      # Open images and resize them to the same size
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
       image_b = image_b.resize((width, height), Image.LANCZOS)
     
-      # Blend images
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
@@ -432,7 +403,6 @@ class ImageProcessingApp(tk.Tk):
               b = int(alpha * b_a + (1 - alpha) * b_b)
               result_image.putpixel((i, j), (r, g, b))
     
-      # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -444,13 +414,11 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
           return
     
-      # Open images and resize them to the same size
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
       image_b = image_b.resize((width, height), Image.LANCZOS)
     
-      # Perform AND operation
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
@@ -459,7 +427,6 @@ class ImageProcessingApp(tk.Tk):
               b = image_a.getpixel((i, j))[2] & image_b.getpixel((i, j))[2]
               result_image.putpixel((i, j), (r, g, b))
     
-      # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -470,13 +437,11 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
           return
     
-      # Open images and resize them to the same size
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
       image_b = image_b.resize((width, height), Image.LANCZOS)
     
-      # Perform OR operation
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
@@ -485,7 +450,6 @@ class ImageProcessingApp(tk.Tk):
               b = image_a.getpixel((i, j))[2] | image_b.getpixel((i, j))[2]
               result_image.putpixel((i, j), (r, g, b))
     
-      # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -496,13 +460,11 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
           return
     
-      # Open images and resize them to the same size
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
       image_b = image_b.resize((width, height), Image.LANCZOS)
     
-      # Perform XOR operation
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
@@ -511,7 +473,6 @@ class ImageProcessingApp(tk.Tk):
               b = image_a.getpixel((i, j))[2] ^ image_b.getpixel((i, j))[2]
               result_image.putpixel((i, j), (r, g, b))
     
-      # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -522,11 +483,9 @@ class ImageProcessingApp(tk.Tk):
             messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
             return
     
-        # Open image A
         image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
         width, height = image_a.size
     
-        # Perform NOT operation
         result_image = Image.new('RGB', (width, height))
         for i in range(width):
             for j in range(height):
@@ -536,7 +495,28 @@ class ImageProcessingApp(tk.Tk):
                 b = 255 - b
                 result_image.putpixel((i, j), (r, g, b))
     
-        # Convert result to image
+        result_image.thumbnail((200, 200))
+        self.result_image = ImageTk.PhotoImage(result_image)
+        self.result_image_label.config(image=self.result_image)
+        self.result_image_pil = result_image
+
+  def not_image_a(self):
+        if not self.image_a:
+            messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
+            return
+    
+        image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+        width, height = image_a.size
+    
+        result_image = Image.new('RGB', (width, height))
+        for i in range(width):
+            for j in range(height):
+                r, g, b = image_a.getpixel((i, j))
+                r = 255 - r
+                g = 255 - g
+                b = 255 - b
+                result_image.putpixel((i, j), (r, g, b))
+    
         result_image.thumbnail((200, 200))
         self.result_image = ImageTk.PhotoImage(result_image)
         self.result_image_label.config(image=self.result_image)
