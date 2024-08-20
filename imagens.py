@@ -78,6 +78,7 @@ class ImageProcessingApp(tk.Tk):
       group.pack(pady=5, fill='x')
       ttk.Button(group, text='Adição', command=self.add_images_with_value).pack(side='left', padx=2)
       ttk.Button(group, text='Subtração', command=self.subtract_images_with_value).pack(side='left', padx=2)
+      ttk.Button(group, text='Multiplicação', command=self.multiply_images).pack(side='left', padx=2)
       operations = ['Multiplicação', 'Divisão', 'Média', 'Blending']
       for op in operations:
           ttk.Button(group, text=op).pack(side='left', padx=2)
@@ -323,6 +324,32 @@ class ImageProcessingApp(tk.Tk):
        self.result_image = ImageTk.PhotoImage(result_image)
        self.result_image_label.config(image=self.result_image)
        self.result_image_pil = result_image
+       
+  def multiply_images(self):
+      if not self.image_a or not self.image_b:
+          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+          return
+    
+      # Open images and resize them to the same size
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+      image_b = image_b.resize((width, height), Image.LANCZOS)
+    
+      # Multiply images
+      result_image = Image.new('RGB', (width, height))
+      for i in range(width):
+          for j in range(height):
+              r = min(255, (image_a.getpixel((i, j))[0] * image_b.getpixel((i, j))[0]) // 255)
+              g = min(255, (image_a.getpixel((i, j))[1] * image_b.getpixel((i, j))[1]) // 255)
+              b = min(255, (image_a.getpixel((i, j))[2] * image_b.getpixel((i, j))[2]) // 255)
+              result_image.putpixel((i, j), (r, g, b))
+    
+      # Convert result to image
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
 
 if __name__ == '__main__':
   app = ImageProcessingApp()
