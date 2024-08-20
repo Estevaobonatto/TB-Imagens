@@ -79,9 +79,8 @@ class ImageProcessingApp(tk.Tk):
       ttk.Button(group, text='Adição', command=self.add_images_with_value).pack(side='left', padx=2)
       ttk.Button(group, text='Subtração', command=self.subtract_images_with_value).pack(side='left', padx=2)
       ttk.Button(group, text='Multiplicação', command=self.multiply_images).pack(side='left', padx=2)
-      operations = ['Multiplicação', 'Divisão', 'Média', 'Blending']
-      for op in operations:
-          ttk.Button(group, text=op).pack(side='left', padx=2)
+      ttk.Button(group, text='Divisão', command=self.divide_images).pack(side='left', padx=2)
+      ttk.Button(group, text='Média', command=self.average_images).pack(side='left', padx=2)
 
   def create_logical_operations_group(self, parent):
       group = ttk.LabelFrame(parent, text="Operações Lógicas", padding=5)
@@ -200,6 +199,85 @@ class ImageProcessingApp(tk.Tk):
       self.result_image_label.config(image=self.result_image)
       self.result_image_pil = result_image
 
+  def multiply_images(self):
+      if not self.image_a or not self.image_b:
+          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+          return
+
+      # Open images and resize them to the same size
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+      image_b = image_b.resize((width, height), Image.LANCZOS)
+
+      # Multiply images
+      result_image = Image.new('RGB', (width, height))
+      for i in range(width):
+          for j in range(height):
+              r = min(255, (image_a.getpixel((i, j))[0] * image_b.getpixel((i, j))[0]) // 255)
+              g = min(255, (image_a.getpixel((i, j))[1] * image_b.getpixel((i, j))[1]) // 255)
+              b = min(255, (image_a.getpixel((i, j))[2] * image_b.getpixel((i, j))[2]) // 255)
+              result_image.putpixel((i, j), (r, g, b))
+
+      # Convert result to image
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+
+  def divide_images(self):
+      if not self.image_a or not self.image_b:
+          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+          return
+
+      # Open images and resize them to the same size
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+      image_b = image_b.resize((width, height), Image.LANCZOS)
+
+      # Divide images
+      result_image = Image.new('RGB', (width, height))
+      for i in range(width):
+          for j in range(height):
+              # Avoid division by zero by adding a small epsilon value
+              r = min(255, int(image_a.getpixel((i, j))[0] / (image_b.getpixel((i, j))[0] + 1e-6) * 255))
+              g = min(255, int(image_a.getpixel((i, j))[1] / (image_b.getpixel((i, j))[1] + 1e-6) * 255))
+              b = min(255, int(image_a.getpixel((i, j))[2] / (image_b.getpixel((i, j))[2] + 1e-6) * 255))
+              result_image.putpixel((i, j), (r, g, b))
+
+      # Convert result to image
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+
+  def average_images(self):
+      if not self.image_a or not self.image_b:
+          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+          return
+
+      # Open images and resize them to the same size
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+      image_b = image_b.resize((width, height), Image.LANCZOS)
+
+      # Average images
+      result_image = Image.new('RGB', (width, height))
+      for i in range(width):
+          for j in range(height):
+              r = (image_a.getpixel((i, j))[0] + image_b.getpixel((i, j))[0]) // 2
+              g = (image_a.getpixel((i, j))[1] + image_b.getpixel((i, j))[1]) // 2
+              b = (image_a.getpixel((i, j))[2] + image_b.getpixel((i, j))[2]) // 2
+              result_image.putpixel((i, j), (r, g, b))
+
+      # Convert result to image
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+
   def save_result_image(self):
       if self.result_image_pil:
           file_path = filedialog.asksaveasfilename(defaultextension=".png",
@@ -211,35 +289,35 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Nenhuma imagem resultante para salvar.")
 
   def convert_rgb_to_yiq(self):
-    if not self.image_a:
-        messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a conversão.")
-        return
+      if not self.image_a:
+          messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a conversão.")
+          return
 
-    # Open image A
-    image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
-    width, height = image_a.size
+      # Open image A
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
 
-    # Convert RGB to YIQ and back to RGB for display
-    result_image = Image.new('RGB', (width, height))
-    for x in range(width):
-        for y in range(height):
-            r, g, b = image_a.getpixel((x, y))
-            # Convert RGB to YIQ
-            y_val = 0.299 * r + 0.587 * g + 0.114 * b
-            i_val = 0.596 * r - 0.274 * g - 0.322 * b
-            q_val = 0.211 * r - 0.523 * g + 0.312 * b
-            # Convert YIQ back to RGB for display
-            r = y_val + 0.956 * i_val + 0.621 * q_val
-            g = y_val - 0.272 * i_val - 0.647 * q_val
-            b = y_val - 1.106 * i_val + 1.703 * q_val
-            r, g, b = [int(max(0, min(255, x))) for x in (r, g, b)]
-            result_image.putpixel((x, y), (r, g, b))
+      # Convert RGB to YIQ and back to RGB for display
+      result_image = Image.new('RGB', (width, height))
+      for x in range(width):
+          for y in range(height):
+              r, g, b = image_a.getpixel((x, y))
+              # Convert RGB to YIQ
+              y_val = 0.299 * r + 0.587 * g + 0.114 * b
+              i_val = 0.596 * r - 0.274 * g - 0.322 * b
+              q_val = 0.211 * r - 0.523 * g + 0.312 * b
+              # Convert YIQ back to RGB for display
+              r = y_val + 0.956 * i_val + 0.621 * q_val
+              g = y_val - 0.272 * i_val - 0.647 * q_val
+              b = y_val - 1.106 * i_val + 1.703 * q_val
+              r, g, b = [int(max(0, min(255, x))) for x in (r, g, b)]
+              result_image.putpixel((x, y), (r, g, b))
 
-    # Convert result to image
-    result_image.thumbnail((200, 200))
-    self.result_image = ImageTk.PhotoImage(result_image)
-    self.result_image_label.config(image=self.result_image)
-    self.result_image_pil = result_image
+      # Convert result to image
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
 
   def convert_rgb_to_hsi(self):
       if not self.image_a:
@@ -294,19 +372,19 @@ class ImageProcessingApp(tk.Tk):
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
       self.result_image_pil = result_image
-      
+
   def to_double(self):
-       if not self.image_a:
+      if not self.image_a:
           messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a conversão.")
           return
-    
+
       # Open image A
-       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
-       width, height = image_a.size
-    
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+
       # Convert RGB to double (0.0 to 1.0)
-       result_image = Image.new('RGB', (width, height))
-       for x in range(width):
+      result_image = Image.new('RGB', (width, height))
+      for x in range(width):
           for y in range(height):
               r, g, b = image_a.getpixel((x, y))
               # Normalize to 0.0 - 1.0
@@ -318,33 +396,7 @@ class ImageProcessingApp(tk.Tk):
               g_display = int(g_double * 255)
               b_display = int(b_double * 255)
               result_image.putpixel((x, y), (r_display, g_display, b_display))
-    
-      # Convert result to image
-       result_image.thumbnail((200, 200))
-       self.result_image = ImageTk.PhotoImage(result_image)
-       self.result_image_label.config(image=self.result_image)
-       self.result_image_pil = result_image
-       
-  def multiply_images(self):
-      if not self.image_a or not self.image_b:
-          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
-          return
-    
-      # Open images and resize them to the same size
-      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
-      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
-      width, height = image_a.size
-      image_b = image_b.resize((width, height), Image.LANCZOS)
-    
-      # Multiply images
-      result_image = Image.new('RGB', (width, height))
-      for i in range(width):
-          for j in range(height):
-              r = min(255, (image_a.getpixel((i, j))[0] * image_b.getpixel((i, j))[0]) // 255)
-              g = min(255, (image_a.getpixel((i, j))[1] * image_b.getpixel((i, j))[1]) // 255)
-              b = min(255, (image_a.getpixel((i, j))[2] * image_b.getpixel((i, j))[2]) // 255)
-              result_image.putpixel((i, j), (r, g, b))
-    
+
       # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
