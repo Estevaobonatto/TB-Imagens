@@ -86,9 +86,10 @@ class ImageProcessingApp(tk.Tk):
   def create_logical_operations_group(self, parent):
       group = ttk.LabelFrame(parent, text="Operações Lógicas", padding=5)
       group.pack(pady=5, fill='x')
-      operations = ['AND', 'OR', 'XOR', 'NOT']
-      for op in operations:
-          ttk.Button(group, text=op).pack(side='left', padx=2)
+      ttk.Button(group, text='AND', command=self.and_images).pack(side='left', padx=2)
+      ttk.Button(group, text='OR', command=self.or_images).pack(side='left', padx=2)
+      ttk.Button(group, text='XOR', command=self.xor_images).pack(side='left', padx=2)
+      ttk.Button(group, text='NOT', command=self.not_image_a).pack(side='left', padx=2)
 
   def create_image_enhancement_group(self, parent):
       group = ttk.LabelFrame(parent, text="Realce de Imagens", padding=5)
@@ -437,6 +438,110 @@ class ImageProcessingApp(tk.Tk):
       self.result_image_label.config(image=self.result_image)
       self.result_image_pil = result_image
 
+
+  def and_images(self):
+      if not self.image_a or not self.image_b:
+          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+          return
+    
+      # Open images and resize them to the same size
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+      image_b = image_b.resize((width, height), Image.LANCZOS)
+    
+      # Perform AND operation
+      result_image = Image.new('RGB', (width, height))
+      for i in range(width):
+          for j in range(height):
+              r = image_a.getpixel((i, j))[0] & image_b.getpixel((i, j))[0]
+              g = image_a.getpixel((i, j))[1] & image_b.getpixel((i, j))[1]
+              b = image_a.getpixel((i, j))[2] & image_b.getpixel((i, j))[2]
+              result_image.putpixel((i, j), (r, g, b))
+    
+      # Convert result to image
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+      
+  def or_images(self):
+      if not self.image_a or not self.image_b:
+          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+          return
+    
+      # Open images and resize them to the same size
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+      image_b = image_b.resize((width, height), Image.LANCZOS)
+    
+      # Perform OR operation
+      result_image = Image.new('RGB', (width, height))
+      for i in range(width):
+          for j in range(height):
+              r = image_a.getpixel((i, j))[0] | image_b.getpixel((i, j))[0]
+              g = image_a.getpixel((i, j))[1] | image_b.getpixel((i, j))[1]
+              b = image_a.getpixel((i, j))[2] | image_b.getpixel((i, j))[2]
+              result_image.putpixel((i, j), (r, g, b))
+    
+      # Convert result to image
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+      
+  def xor_images(self):
+      if not self.image_a or not self.image_b:
+          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+          return
+    
+      # Open images and resize them to the same size
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+      image_b = image_b.resize((width, height), Image.LANCZOS)
+    
+      # Perform XOR operation
+      result_image = Image.new('RGB', (width, height))
+      for i in range(width):
+          for j in range(height):
+              r = image_a.getpixel((i, j))[0] ^ image_b.getpixel((i, j))[0]
+              g = image_a.getpixel((i, j))[1] ^ image_b.getpixel((i, j))[1]
+              b = image_a.getpixel((i, j))[2] ^ image_b.getpixel((i, j))[2]
+              result_image.putpixel((i, j), (r, g, b))
+    
+      # Convert result to image
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+      
+  def not_image_a(self):
+        if not self.image_a:
+            messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
+            return
+    
+        # Open image A
+        image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+        width, height = image_a.size
+    
+        # Perform NOT operation
+        result_image = Image.new('RGB', (width, height))
+        for i in range(width):
+            for j in range(height):
+                r, g, b = image_a.getpixel((i, j))
+                r = 255 - r
+                g = 255 - g
+                b = 255 - b
+                result_image.putpixel((i, j), (r, g, b))
+    
+        # Convert result to image
+        result_image.thumbnail((200, 200))
+        self.result_image = ImageTk.PhotoImage(result_image)
+        self.result_image_label.config(image=self.result_image)
+        self.result_image_pil = result_image
+  
 if __name__ == '__main__':
   app = ImageProcessingApp()
   app.mainloop()
