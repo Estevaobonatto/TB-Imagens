@@ -81,6 +81,7 @@ class ImageProcessingApp(tk.Tk):
       ttk.Button(group, text='Multiplicação', command=self.multiply_images).pack(side='left', padx=2)
       ttk.Button(group, text='Divisão', command=self.divide_images).pack(side='left', padx=2)
       ttk.Button(group, text='Média', command=self.average_images).pack(side='left', padx=2)
+      ttk.Button(group, text='Blending', command=self.blend_images).pack(side='left', padx=2)
 
   def create_logical_operations_group(self, parent):
       group = ttk.LabelFrame(parent, text="Operações Lógicas", padding=5)
@@ -397,6 +398,39 @@ class ImageProcessingApp(tk.Tk):
               b_display = int(b_double * 255)
               result_image.putpixel((x, y), (r_display, g_display, b_display))
 
+      # Convert result to image
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+      
+  def blend_images(self):
+      if not self.image_a or not self.image_b:
+          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+          return
+    
+      # Ask for the alpha value
+      alpha = simpledialog.askfloat("Valor de Alpha", "Insira o valor de alpha (0.0 a 1.0):", minvalue=0.0, maxvalue=1.0)
+      if alpha is None:
+          return
+    
+      # Open images and resize them to the same size
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+      image_b = image_b.resize((width, height), Image.LANCZOS)
+    
+      # Blend images
+      result_image = Image.new('RGB', (width, height))
+      for i in range(width):
+          for j in range(height):
+              r_a, g_a, b_a = image_a.getpixel((i, j))
+              r_b, g_b, b_b = image_b.getpixel((i, j))
+              r = int(alpha * r_a + (1 - alpha) * r_b)
+              g = int(alpha * g_a + (1 - alpha) * g_b)
+              b = int(alpha * b_a + (1 - alpha) * b_b)
+              result_image.putpixel((i, j), (r, g, b))
+    
       # Convert result to image
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
