@@ -314,7 +314,7 @@ class ImageProcessingApp(tk.Tk):
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
-              r, g, b = [x / 255.0 for x in image_a.getpixel((i, j))]  # Normalize to [0, 1]
+              r, g, b = [x / 255.0 for x in image_a.getpixel((i, j))]  
               intensity = (r + g + b) / 3
               min_rgb = min(r, g, b)
               saturation = 0 if (r + g + b) == 0 else 1 - (3 / (r + g + b)) * min_rgb
@@ -456,8 +456,17 @@ class ImageProcessingApp(tk.Tk):
       self.result_image_pil = result_image
       
   def xor_images(self):
+      """
+      Função que aplica a opera o XOR entre as imagens A e B.
+      
+      A opera o XOR entre dois pixels de imagens   aplicada de forma
+      independente para cada um dos canais de cor RGB. O resultado de
+      cada canal   o resultado da opera o XOR entre os valores dos
+      respectivos canais das imagens A e B.
+      
+      """
       if not self.image_a or not self.image_b:
-          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a opera o.")
           return
     
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
