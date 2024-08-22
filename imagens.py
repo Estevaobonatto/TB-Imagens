@@ -508,28 +508,6 @@ class ImageProcessingApp(tk.Tk):
         self.result_image = ImageTk.PhotoImage(result_image)
         self.result_image_label.config(image=self.result_image)
         self.result_image_pil = result_image
-
-  def not_image_a(self):
-        if not self.image_a:
-            messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
-            return
-    
-        image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
-        width, height = image_a.size
-    
-        result_image = Image.new('RGB', (width, height))
-        for i in range(width):
-            for j in range(height):
-                r, g, b = image_a.getpixel((i, j))
-                r = 255 - r
-                g = 255 - g
-                b = 255 - b
-                result_image.putpixel((i, j), (r, g, b))
-    
-        result_image.thumbnail((200, 200))
-        self.result_image = ImageTk.PhotoImage(result_image)
-        self.result_image_label.config(image=self.result_image)
-        self.result_image_pil = result_image
   
 if __name__ == '__main__':
   app = ImageProcessingApp()
