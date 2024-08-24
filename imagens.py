@@ -7,7 +7,7 @@ class ImageProcessingApp(tk.Tk):
   def __init__(self):
       super().__init__()
       self.title('Trabalho de Processamento de Imagens - Semestre 2024-2')
-      self.geometry('1400x600')
+      self.geometry('1820x920')
       self.configure(bg='#000000')
 
       style = ttk.Style(self)
