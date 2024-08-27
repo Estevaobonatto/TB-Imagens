@@ -82,6 +82,7 @@ class ImageProcessingApp(tk.Tk):
   def create_logical_operations_group(self, parent):
       group = ttk.LabelFrame(parent, text="Operações Lógicas", padding=5)
       group.pack(pady=5, fill='x')
+      ttk.Button(group, text='LIMIAR', command=self.limiar_images).pack(side='left', padx=2)
       ttk.Button(group, text='AND', command=self.and_images).pack(side='left', padx=2)
       ttk.Button(group, text='OR', command=self.or_images).pack(side='left', padx=2)
       ttk.Button(group, text='XOR', command=self.xor_images).pack(side='left', padx=2)
@@ -132,6 +133,10 @@ class ImageProcessingApp(tk.Tk):
           image.thumbnail((200, 200))
           self.image_b = ImageTk.PhotoImage(image)
           self.image_b_display.config(image=self.image_b)
+
+############################################################
+#            INICIO OPERAÇÕES ARITIMETICAS
+############################################################
 
   def add_images_with_value(self):
       if not self.image_a or not self.image_b:
@@ -408,6 +413,14 @@ class ImageProcessingApp(tk.Tk):
       self.result_image_label.config(image=self.result_image)
       self.result_image_pil = result_image
 
+############################################################
+#            FIM OPERAÇÕES ARITIMETICAS
+############################################################
+
+############################################################
+#            INICIO OPERAÇÕES LÓGICAS
+############################################################
+
 
   def and_images(self):
       if not self.image_a or not self.image_b:
@@ -466,7 +479,7 @@ class ImageProcessingApp(tk.Tk):
       
       """
       if not self.image_a or not self.image_b:
-          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a opera o.")
+          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
           return
     
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
@@ -508,6 +521,33 @@ class ImageProcessingApp(tk.Tk):
         self.result_image = ImageTk.PhotoImage(result_image)
         self.result_image_label.config(image=self.result_image)
         self.result_image_pil = result_image
+
+  def limiar_images(self):
+      if not self.image_a or not self.image_b:
+          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+          return
+    
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+      image_b = image_b.resize((width, height), Image.LANCZOS)
+    
+      result_image = Image.new('RGB', (width, height))
+      for i in range(width):
+          for j in range(height):
+              r = image_a.getpixel((i, j))[0] & image_b.getpixel((i, j))[0]
+              g = image_a.getpixel((i, j))[1] & image_b.getpixel((i, j))[1]
+              b = image_a.getpixel((i, j))[2] & image_b.getpixel((i, j))[2]
+              result_image.putpixel((i, j), (r, g, b))
+    
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+
+############################################################
+#            FIM OPERAÇÕES LÓGICAS
+############################################################
   
 if __name__ == '__main__':
   app = ImageProcessingApp()
