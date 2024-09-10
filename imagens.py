@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog
 from PIL import Image, ImageTk
 import math
+import matplotlib.pyplot as plt
 
 class ImageProcessingApp(tk.Tk):
   def __init__(self):
@@ -87,6 +88,7 @@ class ImageProcessingApp(tk.Tk):
       ttk.Button(group, text='OR', command=self.or_images).pack(side='left', padx=2)
       ttk.Button(group, text='XOR', command=self.xor_images).pack(side='left', padx=2)
       ttk.Button(group, text='NOT', command=self.not_image_a).pack(side='left', padx=2)
+      ttk.Button(group, text='Calcular Histograma', command=self.calculate_and_equalize_histogram).pack(pady=5)
 
   def create_image_enhancement_group(self, parent):
       group = ttk.LabelFrame(parent, text="Realce de Imagens", padding=5)
@@ -140,7 +142,7 @@ class ImageProcessingApp(tk.Tk):
 
   def add_images_with_value(self):
       if not self.image_a or not self.image_b:
-          messagebox.showerror("Error", "Load both images before performing the operation.")
+          messagebox.showerror("Error", "Carregue ambas as imagens antes de realizar a operação.")
           return
 
       addition_value = simpledialog.askinteger(
@@ -469,15 +471,6 @@ class ImageProcessingApp(tk.Tk):
       self.result_image_pil = result_image
       
   def xor_images(self):
-      """
-      Função que aplica a opera o XOR entre as imagens A e B.
-      
-      A opera o XOR entre dois pixels de imagens   aplicada de forma
-      independente para cada um dos canais de cor RGB. O resultado de
-      cada canal   o resultado da opera o XOR entre os valores dos
-      respectivos canais das imagens A e B.
-      
-      """
       if not self.image_a or not self.image_b:
           messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
           return
@@ -547,6 +540,75 @@ class ImageProcessingApp(tk.Tk):
 
 ############################################################
 #            FIM OPERAÇÕES LÓGICAS
+############################################################
+
+############################################################
+#            COMEÇO OPERAÇÕES DE REALCE DE IMAGENS
+############################################################
+
+  def calculate_and_equalize_histogram(self):
+        if not self.image_a:
+            messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
+            return
+
+        # Open the image in grayscale
+        image_path = self.image_a_label.cget("text").split(": ")[1]
+        image = Image.open(image_path).convert('L')
+        width, height = image.size
+
+        # Calculate histogram
+        histogram = [0] * 256
+        for i in range(width):
+            for j in range(height):
+                intensity = image.getpixel((i, j))
+                histogram[intensity] += 1
+
+        # Calculate CDF
+        cdf = [0] * 256
+        cdf[0] = histogram[0]
+        for i in range(1, 256):
+            cdf[i] = cdf[i - 1] + histogram[i]
+
+        # Normalize CDF
+        cdf_min = min(cdf)
+        cdf_max = max(cdf)
+        cdf_normalized = [(cdf[i] - cdf_min) / (cdf_max - cdf_min) * 255 for i in range(256)]
+
+        # Equalize image
+        equalized_image = Image.new('L', (width, height))
+        for i in range(width):
+            for j in range(height):
+                intensity = image.getpixel((i, j))
+                new_intensity = int(cdf_normalized[intensity])
+                equalized_image.putpixel((i, j), new_intensity)
+
+        # Calculate equalized histogram
+        equalized_histogram = [0] * 256
+        for i in range(width):
+            for j in range(height):
+                intensity = equalized_image.getpixel((i, j))
+                equalized_histogram[intensity] += 1
+
+        # Plot histograms
+        plt.figure(figsize=(12, 6))
+        plt.subplot(1, 2, 1)
+        plt.bar(range(256), histogram, width=1.0, edgecolor='black')
+        plt.title('Histograma Original')
+        plt.xlabel('Intensidade de Pixel')
+        plt.ylabel('Número de Pixels')
+        plt.xlim([0, 255])
+
+        plt.subplot(1, 2, 2)
+        plt.bar(range(256), equalized_histogram, width=1.0, edgecolor='black')
+        plt.title('Histograma Equalizado')
+        plt.xlabel('Intensidade de Pixel')
+        plt.ylabel('Número de Pixels')
+        plt.xlim([0, 255])
+
+        plt.show()
+
+############################################################
+#            FIM OPERAÇÕES DE REALCE DE IMAGENS
 ############################################################
   
 if __name__ == '__main__':
