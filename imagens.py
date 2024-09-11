@@ -42,6 +42,7 @@ class ImageProcessingApp(tk.Tk):
       ttk.Button(left_frame, text='RGB -> YIQ', command=self.convert_rgb_to_yiq).pack(pady=5)
       ttk.Button(left_frame, text='RGB -> HSI', command=self.convert_rgb_to_hsi).pack(pady=5)
       ttk.Button(left_frame, text='ToDouble', command=self.to_double).pack(pady=5)
+      ttk.Button(left_frame, text='Calcular Histograma', command=self.calculate_and_equalize_histogram).pack(pady=5)
 
       operations_frame = ttk.Frame(main_frame, padding=5)
       operations_frame.pack(side='left', fill='both', expand=True)
@@ -77,7 +78,6 @@ class ImageProcessingApp(tk.Tk):
       ttk.Button(group, text='Subtração', command=self.subtract_images_with_value).pack(side='left', padx=2)
       ttk.Button(group, text='Multiplicação', command=self.multiply_images).pack(side='left', padx=2)
       ttk.Button(group, text='Divisão', command=self.divide_images).pack(side='left', padx=2)
-      ttk.Button(group, text='Média', command=self.average_images).pack(side='left', padx=2)
       ttk.Button(group, text='Blending', command=self.blend_images).pack(side='left', padx=2)
 
   def create_logical_operations_group(self, parent):
@@ -88,7 +88,6 @@ class ImageProcessingApp(tk.Tk):
       ttk.Button(group, text='OR', command=self.or_images).pack(side='left', padx=2)
       ttk.Button(group, text='XOR', command=self.xor_images).pack(side='left', padx=2)
       ttk.Button(group, text='NOT', command=self.not_image_a).pack(side='left', padx=2)
-      ttk.Button(group, text='Calcular Histograma', command=self.calculate_and_equalize_histogram).pack(pady=5)
 
   def create_image_enhancement_group(self, parent):
       group = ttk.LabelFrame(parent, text="Realce de Imagens", padding=5)
@@ -248,28 +247,7 @@ class ImageProcessingApp(tk.Tk):
       self.result_image_label.config(image=self.result_image)
       self.result_image_pil = result_image
 
-  def average_images(self):
-      if not self.image_a or not self.image_b:
-          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
-          return
 
-      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
-      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
-      width, height = image_a.size
-      image_b = image_b.resize((width, height), Image.LANCZOS)
-
-      result_image = Image.new('RGB', (width, height))
-      for i in range(width):
-          for j in range(height):
-              r = (image_a.getpixel((i, j))[0] + image_b.getpixel((i, j))[0]) // 2
-              g = (image_a.getpixel((i, j))[1] + image_b.getpixel((i, j))[1]) // 2
-              b = (image_a.getpixel((i, j))[2] + image_b.getpixel((i, j))[2]) // 2
-              result_image.putpixel((i, j), (r, g, b))
-
-      result_image.thumbnail((200, 200))
-      self.result_image = ImageTk.PhotoImage(result_image)
-      self.result_image_label.config(image=self.result_image)
-      self.result_image_pil = result_image
 
   def save_result_image(self):
       if self.result_image_pil:
@@ -542,10 +520,6 @@ class ImageProcessingApp(tk.Tk):
 #            FIM OPERAÇÕES LÓGICAS
 ############################################################
 
-############################################################
-#            COMEÇO OPERAÇÕES DE REALCE DE IMAGENS
-############################################################
-
   def calculate_and_equalize_histogram(self):
         if not self.image_a:
             messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
@@ -606,6 +580,12 @@ class ImageProcessingApp(tk.Tk):
         plt.xlim([0, 255])
 
         plt.show()
+
+############################################################
+#            COMEÇO OPERAÇÕES DE REALCE DE IMAGENS
+############################################################
+
+  
 
 ############################################################
 #            FIM OPERAÇÕES DE REALCE DE IMAGENS
