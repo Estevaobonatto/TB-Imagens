@@ -42,6 +42,7 @@ class ImageProcessingApp(tk.Tk):
       ttk.Button(left_frame, text='RGB -> YIQ', command=self.convert_rgb_to_yiq).pack(pady=5)
       ttk.Button(left_frame, text='RGB -> HSI', command=self.convert_rgb_to_hsi).pack(pady=5)
       ttk.Button(left_frame, text='ToDouble', command=self.to_double).pack(pady=5)
+      ttk.Button(left_frame, text='Escala de Cinza', command=self.convert_to_grayscale).pack(pady=5)
       ttk.Button(left_frame, text='Calcular Histograma', command=self.calculate_and_equalize_histogram).pack(pady=5)
 
       operations_frame = ttk.Frame(main_frame, padding=5)
@@ -54,7 +55,6 @@ class ImageProcessingApp(tk.Tk):
       self.create_gaussian_filter_group(operations_frame)
       self.create_morphological_operations_group(operations_frame)
 
-      # Image B
       right_frame = ttk.Frame(main_frame, padding=5)
       right_frame.pack(side='left', fill='y')
 
@@ -92,16 +92,20 @@ class ImageProcessingApp(tk.Tk):
   def create_image_enhancement_group(self, parent):
       group = ttk.LabelFrame(parent, text="Realce de Imagens", padding=5)
       group.pack(pady=5, fill='x')
-      operations = ['MAX', 'MIN', 'MÉDIA', 'MEDIANA', 'ORDEM', 'SUAV. CONSERVATIVA']
-      for op in operations:
-          ttk.Button(group, text=op).pack(side='left', padx=2)
+      ttk.Button(group, text='LIMIAR', command=self.limiar_images).pack(side='left', padx=2)
+      ttk.Button(group, text='AND', command=self.and_images).pack(side='left', padx=2)
+      ttk.Button(group, text='OR', command=self.or_images).pack(side='left', padx=2)
+      ttk.Button(group, text='XOR', command=self.xor_images).pack(side='left', padx=2)
+      ttk.Button(group, text='NOT', command=self.not_image_a).pack(side='left', padx=2)
 
   def create_edge_detection_group(self, parent):
       group = ttk.LabelFrame(parent, text="Detecção de Bordas", padding=5)
       group.pack(pady=5, fill='x')
-      operations = ['Prewitt', 'Sobel', 'Laplaciano']
-      for op in operations:
-          ttk.Button(group, text=op).pack(side='left', padx=2)
+      ttk.Button(group, text='LIMIAR', command=self.limiar_images).pack(side='left', padx=2)
+      ttk.Button(group, text='AND', command=self.and_images).pack(side='left', padx=2)
+      ttk.Button(group, text='OR', command=self.or_images).pack(side='left', padx=2)
+      ttk.Button(group, text='XOR', command=self.xor_images).pack(side='left', padx=2)
+      ttk.Button(group, text='NOT', command=self.not_image_a).pack(side='left', padx=2)
 
   def create_gaussian_filter_group(self, parent):
       group = ttk.LabelFrame(parent, text="Filtragem Gaussiana", padding=5)
@@ -113,9 +117,11 @@ class ImageProcessingApp(tk.Tk):
   def create_morphological_operations_group(self, parent):
       group = ttk.LabelFrame(parent, text="Operações Morfológicas", padding=5)
       group.pack(pady=5, fill='x')
-      operations = ['Dilatação', 'Erosão', 'Abertura', 'Fechamento', 'Contorno']
-      for op in operations:
-          ttk.Button(group, text=op).pack(side='left', padx=2)
+      ttk.Button(group, text='LIMIAR', command=self.limiar_images).pack(side='left', padx=2)
+      ttk.Button(group, text='AND', command=self.and_images).pack(side='left', padx=2)
+      ttk.Button(group, text='OR', command=self.or_images).pack(side='left', padx=2)
+      ttk.Button(group, text='XOR', command=self.xor_images).pack(side='left', padx=2)
+      ttk.Button(group, text='NOT', command=self.not_image_a).pack(side='left', padx=2)
 
   def load_image_a(self):
       file_path = filedialog.askopenfilename()
@@ -138,6 +144,18 @@ class ImageProcessingApp(tk.Tk):
 ############################################################
 #            INICIO OPERAÇÕES ARITIMETICAS
 ############################################################
+
+  def convert_to_grayscale(self):
+      if not self.image_a:
+          messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a conversão.")
+          return
+
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      grayscale_image = image_a.convert('L')  # Converte para escala de cinza
+      grayscale_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(grayscale_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = grayscale_image
 
   def add_images_with_value(self):
       if not self.image_a or not self.image_b:
@@ -524,31 +542,26 @@ class ImageProcessingApp(tk.Tk):
         if not self.image_a:
             messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
             return
-
-        # Open the image in grayscale
+        
         image_path = self.image_a_label.cget("text").split(": ")[1]
         image = Image.open(image_path).convert('L')
         width, height = image.size
 
-        # Calculate histogram
         histogram = [0] * 256
         for i in range(width):
             for j in range(height):
                 intensity = image.getpixel((i, j))
                 histogram[intensity] += 1
 
-        # Calculate CDF
         cdf = [0] * 256
         cdf[0] = histogram[0]
         for i in range(1, 256):
             cdf[i] = cdf[i - 1] + histogram[i]
 
-        # Normalize CDF
         cdf_min = min(cdf)
         cdf_max = max(cdf)
         cdf_normalized = [(cdf[i] - cdf_min) / (cdf_max - cdf_min) * 255 for i in range(256)]
 
-        # Equalize image
         equalized_image = Image.new('L', (width, height))
         for i in range(width):
             for j in range(height):
@@ -556,24 +569,22 @@ class ImageProcessingApp(tk.Tk):
                 new_intensity = int(cdf_normalized[intensity])
                 equalized_image.putpixel((i, j), new_intensity)
 
-        # Calculate equalized histogram
         equalized_histogram = [0] * 256
         for i in range(width):
             for j in range(height):
                 intensity = equalized_image.getpixel((i, j))
                 equalized_histogram[intensity] += 1
 
-        # Plot histograms
         plt.figure(figsize=(12, 6))
         plt.subplot(1, 2, 1)
-        plt.bar(range(256), histogram, width=1.0, edgecolor='black')
+        plt.bar(range(256), histogram, width=1.0, edgecolor='blue')
         plt.title('Histograma Original')
         plt.xlabel('Intensidade de Pixel')
         plt.ylabel('Número de Pixels')
         plt.xlim([0, 255])
 
         plt.subplot(1, 2, 2)
-        plt.bar(range(256), equalized_histogram, width=1.0, edgecolor='black')
+        plt.bar(range(256), equalized_histogram, width=1.0, edgecolor='blue')
         plt.title('Histograma Equalizado')
         plt.xlabel('Intensidade de Pixel')
         plt.ylabel('Número de Pixels')
