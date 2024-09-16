@@ -92,20 +92,12 @@ class ImageProcessingApp(tk.Tk):
   def create_image_enhancement_group(self, parent):
       group = ttk.LabelFrame(parent, text="Realce de Imagens", padding=5)
       group.pack(pady=5, fill='x')
-      ttk.Button(group, text='LIMIAR', command=self.limiar_images).pack(side='left', padx=2)
-      ttk.Button(group, text='AND', command=self.and_images).pack(side='left', padx=2)
-      ttk.Button(group, text='OR', command=self.or_images).pack(side='left', padx=2)
-      ttk.Button(group, text='XOR', command=self.xor_images).pack(side='left', padx=2)
-      ttk.Button(group, text='NOT', command=self.not_image_a).pack(side='left', padx=2)
+      ttk.Button(group, text='MAXIMA', command=self.apply_maxima).pack(side='left', padx=2)
 
   def create_edge_detection_group(self, parent):
       group = ttk.LabelFrame(parent, text="Detecção de Bordas", padding=5)
       group.pack(pady=5, fill='x')
-      ttk.Button(group, text='LIMIAR', command=self.limiar_images).pack(side='left', padx=2)
-      ttk.Button(group, text='AND', command=self.and_images).pack(side='left', padx=2)
-      ttk.Button(group, text='OR', command=self.or_images).pack(side='left', padx=2)
-      ttk.Button(group, text='XOR', command=self.xor_images).pack(side='left', padx=2)
-      ttk.Button(group, text='NOT', command=self.not_image_a).pack(side='left', padx=2)
+      ttk.Button(group, text='Prewitt', command=self.apply_prewitt).pack(side='left', padx=2)
 
   def create_gaussian_filter_group(self, parent):
       group = ttk.LabelFrame(parent, text="Filtragem Gaussiana", padding=5)
@@ -596,12 +588,125 @@ class ImageProcessingApp(tk.Tk):
 #            COMEÇO OPERAÇÕES DE REALCE DE IMAGENS
 ############################################################
 
-  
+  def apply_maxima(self):
+      if not self.image_a:
+          messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
+          return
+
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('L')
+      width, height = image_a.size
+
+      # Criar uma nova imagem para armazenar o resultado
+      result_image = Image.new('L', (width, height))
+
+      # Aplicar a operação de máximo
+      for i in range(1, height - 1):
+          for j in range(1, width - 1):
+              # Obter a janela 3x3
+              window = [
+                  image_a.getpixel((x, y))
+                  for y in range(i-1, i+2)
+                  for x in range(j-1, j+2)
+              ]
+              # Encontrar o valor máximo na janela
+              max_val = max(window)
+              result_image.putpixel((j, i), max_val)
+
+      # Copiar as bordas da imagem original
+      for i in range(height):
+          result_image.putpixel((0, i), image_a.getpixel((0, i)))
+          result_image.putpixel((width-1, i), image_a.getpixel((width-1, i)))
+      for j in range(width):
+          result_image.putpixel((j, 0), image_a.getpixel((j, 0)))
+          result_image.putpixel((j, height-1), image_a.getpixel((j, height-1)))
+
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
 
 ############################################################
 #            FIM OPERAÇÕES DE REALCE DE IMAGENS
 ############################################################
-  
-if __name__ == '__main__':
-  app = ImageProcessingApp()
-  app.mainloop()
+
+############################################################
+#            COMEÇO OPERAÇÕES DE DETECÇÃO DE BORDAS
+############################################################
+
+  def apply_prewitt(self):
+      if not self.image_a:
+          messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
+          return
+
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('L')
+      width, height = image_a.size
+
+      # Definir os kernels de Prewitt
+      kernel_x = [[-1, 0, 1],
+                  [-1, 0, 1],
+                  [-1, 0, 1]]
+      kernel_y = [[-1, -1, -1],
+                  [0, 0, 0],
+                  [1, 1, 1]]
+
+      # Aplicar a convolução
+      gradient_x = self.convolve(image_a, kernel_x)
+      gradient_y = self.convolve(image_a, kernel_y)
+
+      # Calcular a magnitude do gradiente
+      result_image = Image.new('L', (width, height))
+      max_magnitude = 0
+
+      for y in range(height):
+          for x in range(width):
+              gx = gradient_x[y][x]
+              gy = gradient_y[y][x]
+              magnitude = int(math.sqrt(gx**2 + gy**2))
+              max_magnitude = max(max_magnitude, magnitude)
+              result_image.putpixel((x, y), magnitude)
+
+      # Normalizar para o intervalo 0-255
+      for y in range(height):
+          for x in range(width):
+              normalized = int(result_image.getpixel((x, y)) / max_magnitude * 255)
+              result_image.putpixel((x, y), normalized)
+
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+
+  def convolve(self, image, kernel):
+      width, height = image.size
+      k_height = len(kernel)
+      k_width = len(kernel[0])
+
+      # Calcular o padding necessário
+      pad_height = k_height // 2
+      pad_width = k_width // 2
+
+      # Inicializar a matriz de saída
+      output = [[0 for _ in range(width)] for _ in range(height)]
+
+      # Realizar a convolução
+      for y in range(height):
+          for x in range(width):
+              sum = 0
+              for ky in range(k_height):
+                  for kx in range(k_width):
+                      img_x = x + kx - pad_width
+                      img_y = y + ky - pad_height
+                      if 0 <= img_x < width and 0 <= img_y < height:
+                          pixel = image.getpixel((img_x, img_y))
+                          sum += pixel * kernel[ky][kx]
+              output[y][x] = sum
+
+      return output
+
+############################################################
+#            FIM OPERAÇÕES DE DETECÇÃO DE BORDAS
+############################################################
+
+if __name__ == "__main__":
+    app = ImageProcessingApp()
+    app.mainloop()
