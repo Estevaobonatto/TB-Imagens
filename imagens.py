@@ -98,6 +98,8 @@ class ImageProcessingApp(tk.Tk):
       group = ttk.LabelFrame(parent, text="Detecção de Bordas", padding=5)
       group.pack(pady=5, fill='x')
       ttk.Button(group, text='Prewitt', command=self.apply_prewitt).pack(side='left', padx=2)
+      ttk.Button(group, text='Sobel', command=self.apply_sobel).pack(side='left', padx=2)
+      ttk.Button(group, text='Laplaciano', command=self.apply_laplacian).pack(side='left', padx=2)
 
   def create_gaussian_filter_group(self, parent):
       group = ttk.LabelFrame(parent, text="Filtragem Gaussiana", padding=5)
@@ -670,6 +672,90 @@ class ImageProcessingApp(tk.Tk):
           for x in range(width):
               normalized = int(result_image.getpixel((x, y)) / max_magnitude * 255)
               result_image.putpixel((x, y), normalized)
+
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+
+  def apply_sobel(self):
+      if not self.image_a:
+          messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
+          return
+
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('L')
+      width, height = image_a.size
+
+      # Definir os kernels de Sobel
+      kernel_x = [[-1, 0, 1],
+                  [-2, 0, 2],
+                  [-1, 0, 1]]
+      kernel_y = [[-1, -2, -1],
+                  [0, 0, 0],
+                  [1, 2, 1]]
+
+      # Aplicar a convolução
+      gradient_x = self.convolve(image_a, kernel_x)
+      gradient_y = self.convolve(image_a, kernel_y)
+
+      # Calcular a magnitude do gradiente
+      result_image = Image.new('L', (width, height))
+      max_magnitude = 0
+
+      for y in range(height):
+          for x in range(width):
+              gx = gradient_x[y][x]
+              gy = gradient_y[y][x]
+              magnitude = int(math.sqrt(gx**2 + gy**2))
+              max_magnitude = max(max_magnitude, magnitude)
+              result_image.putpixel((x, y), magnitude)
+
+      # Normalizar para o intervalo 0-255
+      for y in range(height):
+          for x in range(width):
+              normalized = int(result_image.getpixel((x, y)) / max_magnitude * 255)
+              result_image.putpixel((x, y), normalized)
+
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+
+  def apply_laplacian(self):
+      if not self.image_a:
+          messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
+          return
+
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('L')
+      width, height = image_a.size
+
+      # Definir o kernel Laplaciano
+      kernel = [[0, 1, 0],
+                [1, -4, 1],
+                [0, 1, 0]]
+
+      # Inicializar a imagem de resultado
+      result_image = Image.new('L', (width, height))
+
+      # Aplicar o filtro Laplaciano
+      for y in range(1, height - 1):
+          for x in range(1, width - 1):
+              sum = 0
+              for ky in range(3):
+                  for kx in range(3):
+                      pixel = image_a.getpixel((x + kx - 1, y + ky - 1))
+                      sum += pixel * kernel[ky][kx]
+              # Adicionar 128 para centralizar os valores em torno de 128 (cinza médio)
+              sum = max(0, min(255, sum + 128))
+              result_image.putpixel((x, y), int(sum))
+
+      # Copiar as bordas da imagem original
+      for y in range(height):
+          result_image.putpixel((0, y), image_a.getpixel((0, y)))
+          result_image.putpixel((width-1, y), image_a.getpixel((width-1, y)))
+      for x in range(width):
+          result_image.putpixel((x, 0), image_a.getpixel((x, 0)))
+          result_image.putpixel((x, height-1), image_a.getpixel((x, height-1)))
 
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
