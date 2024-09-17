@@ -1,0 +1,1 @@
+o usuario da uma entrada de 0 a 255 e o programa calcula o limiar automaticamente, trasformando a imagem em uma imagem em escala de cinza e depois em binaria, aplicando o limiar escolhido pelo usuario.

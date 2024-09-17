@@ -106,7 +106,7 @@ class ImageProcessingApp(tk.Tk):
       group.pack(pady=5, fill='x')
       
       ttk.Label(group, text="Desvio Padrão (Sigma):").pack(side='left', padx=2)
-      self.gaussian_sigma = tk.Scale(group, from_=0.1, to=5.0, resolution=0.1, orient='horizontal', length=100)
+      self.gaussian_sigma = tk.Scale(group, from_=0.1, to=3.0, resolution=0.1, orient='horizontal', length=100)
       self.gaussian_sigma.pack(side='left', padx=2)
       self.gaussian_sigma.set(1.0)
       
@@ -811,21 +811,17 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
           return
 
-      # Obter a intensidade do filtro da interface
       intensity = self.gaussian_intensity.get()
 
-      # Obter o valor de sigma da interface
       sigma = float(self.gaussian_sigma.get())
 
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
 
-      # Criar kernel Gaussiano
       kernel_size = int(6 * sigma)
       if kernel_size % 2 == 0:
           kernel_size += 1
       
-      # Criar kernel Gaussiano
       kernel = [[0 for _ in range(kernel_size)] for _ in range(kernel_size)]
       center = kernel_size // 2
       kernel_sum = 0
@@ -837,7 +833,6 @@ class ImageProcessingApp(tk.Tk):
               kernel[y][x] = value
               kernel_sum += value
       
-      # Normalizar o kernel
       for y in range(kernel_size):
           for x in range(kernel_size):
               kernel[y][x] /= kernel_sum
@@ -864,7 +859,6 @@ class ImageProcessingApp(tk.Tk):
               g = int(g / weight_sum)
               b = int(b / weight_sum)
 
-              # Aplicar a intensidade
               original = image_a.getpixel((x, y))
               r = int(original[0] * (1 - intensity/100) + r * (intensity/100))
               g = int(original[1] * (1 - intensity/100) + g * (intensity/100))
