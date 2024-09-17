@@ -104,9 +104,18 @@ class ImageProcessingApp(tk.Tk):
   def create_gaussian_filter_group(self, parent):
       group = ttk.LabelFrame(parent, text="Filtragem Gaussiana", padding=5)
       group.pack(pady=5, fill='x')
+      
       ttk.Label(group, text="Desvio Padrão (Sigma):").pack(side='left', padx=2)
-      ttk.Entry(group, width=5).pack(side='left', padx=2)
-      ttk.Button(group, text="Gaussiano").pack(side='left', padx=2)
+      self.gaussian_sigma = tk.Scale(group, from_=0.1, to=5.0, resolution=0.1, orient='horizontal', length=100)
+      self.gaussian_sigma.pack(side='left', padx=2)
+      self.gaussian_sigma.set(1.0)
+      
+      ttk.Label(group, text="Intensidade:").pack(side='left', padx=2)
+      self.gaussian_intensity = tk.Scale(group, from_=0, to=100, orient='horizontal', length=100)
+      self.gaussian_intensity.pack(side='left', padx=2)
+      self.gaussian_intensity.set(50)
+      
+      ttk.Button(group, text="Gaussiano", command=self.apply_gaussian).pack(side='left', padx=2)
 
   def create_morphological_operations_group(self, parent):
       group = ttk.LabelFrame(parent, text="Operações Morfológicas", padding=5)
@@ -791,6 +800,85 @@ class ImageProcessingApp(tk.Tk):
 
 ############################################################
 #            FIM OPERAÇÕES DE DETECÇÃO DE BORDAS
+############################################################
+
+############################################################
+#            COMEÇO OPERAÇÕES DE FILTROS
+############################################################
+
+  def apply_gaussian(self):
+      if not self.image_a:
+          messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
+          return
+
+      # Obter a intensidade do filtro da interface
+      intensity = self.gaussian_intensity.get()
+
+      # Obter o valor de sigma da interface
+      sigma = float(self.gaussian_sigma.get())
+
+      image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
+      width, height = image_a.size
+
+      # Criar kernel Gaussiano
+      kernel_size = int(6 * sigma)
+      if kernel_size % 2 == 0:
+          kernel_size += 1
+      
+      # Criar kernel Gaussiano
+      kernel = [[0 for _ in range(kernel_size)] for _ in range(kernel_size)]
+      center = kernel_size // 2
+      kernel_sum = 0
+      for y in range(kernel_size):
+          for x in range(kernel_size):
+              dx = x - center
+              dy = y - center
+              value = math.exp(-(dx**2 + dy**2) / (2 * sigma**2))
+              kernel[y][x] = value
+              kernel_sum += value
+      
+      # Normalizar o kernel
+      for y in range(kernel_size):
+          for x in range(kernel_size):
+              kernel[y][x] /= kernel_sum
+
+      result_image = Image.new('RGB', (width, height))
+
+      for y in range(height):
+          for x in range(width):
+              r, g, b = 0, 0, 0
+              weight_sum = 0
+              for ky in range(kernel_size):
+                  for kx in range(kernel_size):
+                      nx = x + kx - center
+                      ny = y + ky - center
+                      if 0 <= nx < width and 0 <= ny < height:
+                          weight = kernel[ky][kx]
+                          pixel = image_a.getpixel((nx, ny))
+                          r += pixel[0] * weight
+                          g += pixel[1] * weight
+                          b += pixel[2] * weight
+                          weight_sum += weight
+
+              r = int(r / weight_sum)
+              g = int(g / weight_sum)
+              b = int(b / weight_sum)
+
+              # Aplicar a intensidade
+              original = image_a.getpixel((x, y))
+              r = int(original[0] * (1 - intensity/100) + r * (intensity/100))
+              g = int(original[1] * (1 - intensity/100) + g * (intensity/100))
+              b = int(original[2] * (1 - intensity/100) + b * (intensity/100))
+
+              result_image.putpixel((x, y), (r, g, b))
+
+      result_image.thumbnail((200, 200))
+      self.result_image = ImageTk.PhotoImage(result_image)
+      self.result_image_label.config(image=self.result_image)
+      self.result_image_pil = result_image
+
+############################################################
+#            FIM OPERAÇÕES DE FILTROS
 ############################################################
 
 if __name__ == "__main__":
