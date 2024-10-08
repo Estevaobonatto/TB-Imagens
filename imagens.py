@@ -92,7 +92,8 @@ class ImageProcessingApp(tk.Tk):
   def create_image_enhancement_group(self, parent):
       group = ttk.LabelFrame(parent, text="Realce de Imagens", padding=5)
       group.pack(pady=5, fill='x')
-      ttk.Button(group, text='MAXIMA', command=self.apply_maxima).pack(side='left', padx=2)
+      ttk.Button(group, text='MÉDIA', command=self.apply_media).pack(side='left', padx=2)
+      ttk.Button(group, text='MEDIANA', command=self.apply_mediana).pack(side='left', padx=2)
 
   def create_edge_detection_group(self, parent):
       group = ttk.LabelFrame(parent, text="Detecção de Bordas", padding=5)
@@ -599,7 +600,7 @@ class ImageProcessingApp(tk.Tk):
 #            COMEÇO OPERAÇÕES DE REALCE DE IMAGENS
 ############################################################
 
-  def apply_maxima(self):
+  def apply_media(self):
       if not self.image_a:
           messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
           return
@@ -610,7 +611,7 @@ class ImageProcessingApp(tk.Tk):
       # Criar uma nova imagem para armazenar o resultado
       result_image = Image.new('L', (width, height))
 
-      # Aplicar a operação de máximo
+      # Aplicar a operação de média
       for i in range(1, height - 1):
           for j in range(1, width - 1):
               # Obter a janela 3x3
@@ -619,9 +620,9 @@ class ImageProcessingApp(tk.Tk):
                   for y in range(i-1, i+2)
                   for x in range(j-1, j+2)
               ]
-              # Encontrar o valor máximo na janela
-              max_val = max(window)
-              result_image.putpixel((j, i), max_val)
+              # Calcular a média da janela
+              avg_val = sum(window) // 9
+              result_image.putpixel((j, i), avg_val)
 
       # Copiar as bordas da imagem original
       for i in range(height):
@@ -635,6 +636,51 @@ class ImageProcessingApp(tk.Tk):
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
       self.result_image_pil = result_image
+
+  def apply_mediana(self, window_size=3):
+    if not self.image_a:
+        messagebox.showerror("Error", "Load image A before performing the operation.")
+        return
+
+    image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('L')
+    width, height = image_a.size
+
+    # Create a new image to store the result
+    result_image = Image.new('L', (width, height))
+
+    def calculate_median(values):
+        sorted_values = sorted(values)
+        size = len(sorted_values)
+        middle = size // 2
+        if size % 2 == 0:
+            return (sorted_values[middle - 1] + sorted_values[middle]) // 2
+        else:
+            return sorted_values[middle]
+
+    half_window = window_size // 2
+    for i in range(half_window, height - half_window):
+        for j in range(half_window, width - half_window):
+            window = [
+                image_a.getpixel((x, y))
+                for y in range(i - half_window, i + half_window + 1)
+                for x in range(j - half_window, j + half_window + 1)
+            ]
+            # Calculate the median of the window
+            median_val = calculate_median(window)
+            result_image.putpixel((j, i), median_val)
+
+    # Copy the borders of the original image
+    for i in range(height):
+        result_image.putpixel((0, i), image_a.getpixel((0, i)))
+        result_image.putpixel((width-1, i), image_a.getpixel((width-1, i)))
+    for j in range(width):
+        result_image.putpixel((j, 0), image_a.getpixel((j, 0)))
+        result_image.putpixel((j, height-1), image_a.getpixel((j, height-1)))
+
+    result_image.thumbnail((200, 200))
+    self.result_image = ImageTk.PhotoImage(result_image)
+    self.result_image_label.config(image=self.result_image)
+    self.result_image_pil = result_image
 
 ############################################################
 #            FIM OPERAÇÕES DE REALCE DE IMAGENS
