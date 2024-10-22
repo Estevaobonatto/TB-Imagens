@@ -269,8 +269,6 @@ class ImageProcessingApp(tk.Tk):
       self.result_image_label.config(image=self.result_image)
       self.result_image_pil = result_image
 
-
-
   def save_result_image(self):
       if self.result_image_pil:
           file_path = filedialog.asksaveasfilename(defaultextension=".png",
@@ -516,23 +514,30 @@ class ImageProcessingApp(tk.Tk):
         self.result_image_pil = result_image
 
   def limiar_images(self):
-      if not self.image_a or not self.image_b:
-          messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
+      if not self.image_a:
+          messagebox.showerror("Erro", "Carregue a imagem A antes de realizar a operação.")
           return
-    
+
+      threshold = simpledialog.askinteger("Limiar", "Digite o valor do limiar (0-255):", minvalue=0, maxvalue=255)
+      if threshold is None:
+          return
+
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
-      image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
-      image_b = image_b.resize((width, height), Image.LANCZOS)
-    
+
       result_image = Image.new('RGB', (width, height))
-      for i in range(width):
-          for j in range(height):
-              r = image_a.getpixel((i, j))[0] & image_b.getpixel((i, j))[0]
-              g = image_a.getpixel((i, j))[1] & image_b.getpixel((i, j))[1]
-              b = image_a.getpixel((i, j))[2] & image_b.getpixel((i, j))[2]
-              result_image.putpixel((i, j), (r, g, b))
-    
+
+      for x in range(width):
+          for y in range(height):
+              r, g, b = image_a.getpixel((x, y))
+              # Converter para escala de cinza
+              gray = int(0.299 * r + 0.587 * g + 0.114 * b)
+              # Aplicar limiar
+              if gray > threshold:
+                  result_image.putpixel((x, y), (255, 255, 255))  # Branco
+              else:
+                  result_image.putpixel((x, y), (0, 0, 0))  # Preto
+
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -608,23 +613,18 @@ class ImageProcessingApp(tk.Tk):
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('L')
       width, height = image_a.size
 
-      # Criar uma nova imagem para armazenar o resultado
       result_image = Image.new('L', (width, height))
 
-      # Aplicar a operação de média
       for i in range(1, height - 1):
           for j in range(1, width - 1):
-              # Obter a janela 3x3
               window = [
                   image_a.getpixel((x, y))
                   for y in range(i-1, i+2)
                   for x in range(j-1, j+2)
               ]
-              # Calcular a média da janela
               avg_val = sum(window) // 9
               result_image.putpixel((j, i), avg_val)
 
-      # Copiar as bordas da imagem original
       for i in range(height):
           result_image.putpixel((0, i), image_a.getpixel((0, i)))
           result_image.putpixel((width-1, i), image_a.getpixel((width-1, i)))
@@ -645,7 +645,6 @@ class ImageProcessingApp(tk.Tk):
     image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('L')
     width, height = image_a.size
 
-    # Create a new image to store the result
     result_image = Image.new('L', (width, height))
 
     def calculate_median(values):
@@ -665,11 +664,9 @@ class ImageProcessingApp(tk.Tk):
                 for y in range(i - half_window, i + half_window + 1)
                 for x in range(j - half_window, j + half_window + 1)
             ]
-            # Calculate the median of the window
             median_val = calculate_median(window)
             result_image.putpixel((j, i), median_val)
 
-    # Copy the borders of the original image
     for i in range(height):
         result_image.putpixel((0, i), image_a.getpixel((0, i)))
         result_image.putpixel((width-1, i), image_a.getpixel((width-1, i)))
