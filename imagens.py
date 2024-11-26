@@ -39,9 +39,6 @@ class ImageProcessingApp(tk.Tk):
       self.image_a_display.pack(pady=5)
 
       ttk.Button(left_frame, text='Carregar imagem A...', command=self.load_image_a).pack(pady=5)
-      ttk.Button(left_frame, text='RGB -> YIQ', command=self.convert_rgb_to_yiq).pack(pady=5)
-      ttk.Button(left_frame, text='RGB -> HSI', command=self.convert_rgb_to_hsi).pack(pady=5)
-      ttk.Button(left_frame, text='ToDouble', command=self.to_double).pack(pady=5)
       ttk.Button(left_frame, text='Escala de Cinza', command=self.convert_to_grayscale).pack(pady=5)
       ttk.Button(left_frame, text='Calcular Histograma', command=self.calculate_and_equalize_histogram).pack(pady=5)
 
@@ -169,7 +166,7 @@ class ImageProcessingApp(tk.Tk):
           return
 
       addition_value = simpledialog.askinteger(
-          "Addition Value", "Adicione o valor do brilho (0 a 255), 1 para apenas adição", minvalue=0, maxvalue=255)
+          "Adição de Valor", "Adicione o valor do brilho (0 a 255), 1 para apenas adição", minvalue=0, maxvalue=255)
       if addition_value is None:
           return
 
@@ -224,13 +221,13 @@ class ImageProcessingApp(tk.Tk):
           messagebox.showerror("Erro", "Carregue ambas as imagens antes de realizar a operação.")
           return
 
-      # Open images and resize them to the same size
+
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('RGB')
       image_b = Image.open(self.image_b_label.cget("text").split(": ")[1]).convert('RGB')
       width, height = image_a.size
       image_b = image_b.resize((width, height), Image.LANCZOS)
 
-      # Multiply images
+
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
@@ -239,7 +236,7 @@ class ImageProcessingApp(tk.Tk):
               b = min(255, (image_a.getpixel((i, j))[2] * image_b.getpixel((i, j))[2]) // 255)
               result_image.putpixel((i, j), (r, g, b))
 
-      # Convert result to image
+
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
       self.result_image_label.config(image=self.result_image)
@@ -256,11 +253,10 @@ class ImageProcessingApp(tk.Tk):
       width, height = image_a.size
       image_b = image_b.resize((width, height), Image.LANCZOS)
 
-      # Divide images
+
       result_image = Image.new('RGB', (width, height))
       for i in range(width):
           for j in range(height):
-              # Avoid division by zero by adding a small epsilon value
               r = min(255, int(image_a.getpixel((i, j))[0] / (image_b.getpixel((i, j))[0] + 1e-6) * 255))
               g = min(255, int(image_a.getpixel((i, j))[1] / (image_b.getpixel((i, j))[1] + 1e-6) * 255))
               b = min(255, int(image_a.getpixel((i, j))[2] / (image_b.getpixel((i, j))[2] + 1e-6) * 255))
@@ -532,13 +528,13 @@ class ImageProcessingApp(tk.Tk):
       for x in range(width):
           for y in range(height):
               r, g, b = image_a.getpixel((x, y))
-              # Converter para escala de cinza
+
               gray = int(0.299 * r + 0.587 * g + 0.114 * b)
-              # Aplicar limiar
+
               if gray > threshold:
-                  result_image.putpixel((x, y), (255, 255, 255))  # Branco
+                  result_image.putpixel((x, y), (255, 255, 255))  
               else:
-                  result_image.putpixel((x, y), (0, 0, 0))  # Preto
+                  result_image.putpixel((x, y), (0, 0, 0))  
 
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
@@ -698,7 +694,6 @@ class ImageProcessingApp(tk.Tk):
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('L')
       width, height = image_a.size
 
-      # Definir os kernels de Prewitt
       kernel_x = [[-1, 0, 1],
                   [-1, 0, 1],
                   [-1, 0, 1]]
@@ -706,11 +701,9 @@ class ImageProcessingApp(tk.Tk):
                   [0, 0, 0],
                   [1, 1, 1]]
 
-      # Aplicar a convolução
       gradient_x = self.convolve(image_a, kernel_x)
       gradient_y = self.convolve(image_a, kernel_y)
 
-      # Calcular a magnitude do gradiente
       result_image = Image.new('L', (width, height))
       max_magnitude = 0
 
@@ -722,7 +715,6 @@ class ImageProcessingApp(tk.Tk):
               max_magnitude = max(max_magnitude, magnitude)
               result_image.putpixel((x, y), magnitude)
 
-      # Normalizar para o intervalo 0-255
       for y in range(height):
           for x in range(width):
               normalized = int(result_image.getpixel((x, y)) / max_magnitude * 255)
@@ -741,7 +733,6 @@ class ImageProcessingApp(tk.Tk):
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('L')
       width, height = image_a.size
 
-      # Definir os kernels de Sobel
       kernel_x = [[-1, 0, 1],
                   [-2, 0, 2],
                   [-1, 0, 1]]
@@ -749,11 +740,9 @@ class ImageProcessingApp(tk.Tk):
                   [0, 0, 0],
                   [1, 2, 1]]
 
-      # Aplicar a convolução
       gradient_x = self.convolve(image_a, kernel_x)
       gradient_y = self.convolve(image_a, kernel_y)
 
-      # Calcular a magnitude do gradiente
       result_image = Image.new('L', (width, height))
       max_magnitude = 0
 
@@ -765,7 +754,6 @@ class ImageProcessingApp(tk.Tk):
               max_magnitude = max(max_magnitude, magnitude)
               result_image.putpixel((x, y), magnitude)
 
-      # Normalizar para o intervalo 0-255
       for y in range(height):
           for x in range(width):
               normalized = int(result_image.getpixel((x, y)) / max_magnitude * 255)
@@ -784,15 +772,12 @@ class ImageProcessingApp(tk.Tk):
       image_a = Image.open(self.image_a_label.cget("text").split(": ")[1]).convert('L')
       width, height = image_a.size
 
-      # Definir o kernel Laplaciano
       kernel = [[0, 1, 0],
                 [1, -4, 1],
                 [0, 1, 0]]
 
-      # Inicializar a imagem de resultado
       result_image = Image.new('L', (width, height))
 
-      # Aplicar o filtro Laplaciano
       for y in range(1, height - 1):
           for x in range(1, width - 1):
               sum = 0
@@ -800,11 +785,9 @@ class ImageProcessingApp(tk.Tk):
                   for kx in range(3):
                       pixel = image_a.getpixel((x + kx - 1, y + ky - 1))
                       sum += pixel * kernel[ky][kx]
-              # Adicionar 128 para centralizar os valores em torno de 128 (cinza médio)
               sum = max(0, min(255, sum + 128))
               result_image.putpixel((x, y), int(sum))
 
-      # Copiar as bordas da imagem original
       for y in range(height):
           result_image.putpixel((0, y), image_a.getpixel((0, y)))
           result_image.putpixel((width-1, y), image_a.getpixel((width-1, y)))
@@ -822,14 +805,11 @@ class ImageProcessingApp(tk.Tk):
       k_height = len(kernel)
       k_width = len(kernel[0])
 
-      # Calcular o padding necessário
       pad_height = k_height // 2
       pad_width = k_width // 2
 
-      # Inicializar a matriz de saída
       output = [[0 for _ in range(width)] for _ in range(height)]
 
-      # Realizar a convolução
       for y in range(height):
           for x in range(width):
               sum = 0
@@ -877,11 +857,9 @@ class ImageProcessingApp(tk.Tk):
               kernel[y][x] = value
               kernel_sum += value
 
-
       for y in range(kernel_size):
           for x in range(kernel_size):
               kernel[y][x] /= kernel_sum
-
 
       result_image = Image.new('L', (width, height))
       for y in range(height):
@@ -900,7 +878,6 @@ class ImageProcessingApp(tk.Tk):
               
               new_pixel = int(pixel_sum / weight_sum)
               result_image.putpixel((x, y), new_pixel)
-
 
       result_image.thumbnail((200, 200))
       self.result_image = ImageTk.PhotoImage(result_image)
